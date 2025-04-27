@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Manager</title>
+  <style>
+    /* Basic page styling */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2rem;
+    }
+    #taskForm {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      max-width: 400px;
+    }
+    #taskmanager {
+      margin-top: 2rem;
+    }
+    .task {
+      border: 1px solid #ccc;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 5px;
+    }
+    /* Highlight important tasks */
+    .important {
+      background-color: #ffe6e6;
+      color: red;
+    }
+    /* Style completed tasks */
+    .completed {
+      text-decoration: line-through;
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+  <h1>Task Manager</h1>
+
+  <!-- Form to add a new task -->
+  <form id="taskForm">
+    <input type="text" id="taskName" placeholder="Enter task name" required>
+    <select id="taskPriority">
+      <option value="High">High</option>
+      <option value="Medium">Medium</option>
+      <option value="Low">Low</option>
+    </select>
+    <label>
+      <input type="checkbox" id="taskImportant"> Mark as Important
+    </label>
+    <button type="submit">Add Task</button>
+  </form>
+
+  <!-- Container where tasks will be displayed -->
+  <div id="taskmanager"></div>
+
+  <script>
+    // Get DOM elements
+    const taskForm = document.getElementById('taskForm');
+    const taskManager = document.getElementById('taskmanager');
+
+    // Array to hold task objects
+    const tasks = [];
+    // Unique ID counter for tasks
+    let taskId = 1;
+
+    // Function to display all tasks dynamically
+    function renderTasks() {
+      taskManager.innerHTML = ''; // Clear the task list before re-rendering
+
+      tasks.forEach(task => {
+        // Create a div for each task
+        const taskDiv = document.createElement('div');
+        taskDiv.className = 'task';
+
+        // Apply special styling if task is important or completed
+        if (task.isImportant) taskDiv.classList.add('important');
+        if (task.isCompleted) taskDiv.classList.add('completed');
+
+        // Set task details inside the div
+        taskDiv.innerHTML = `
+          <strong>${task.name}</strong> <br>
+          Priority: ${task.priority} <br>
+          Date: ${task.date} <br>
+          <label><input type="checkbox" data-id="${task.id}" class="toggleComplete" ${task.isCompleted ? 'checked' : ''}> Completed</label>
+          <button data-id="${task.id}" class="deleteBtn">Delete</button>
+        `;
+
+        // Add the task div to the page
+        taskManager.appendChild(taskDiv);
+      });
+    }
+
+    // Event listener: When user submits the form to add a new task
+    taskForm.addEventListener('submit', e => {
+      e.preventDefault(); // Stop the form from refreshing the page
+
+      // Get form input values
+      const name = document.getElementById('taskName').value.trim();
+      const priority = document.getElementById('taskPriority').value;
+      const isImportant = document.getElementById('taskImportant').checked;
+
+      // Validate task name is not empty
+      if (!name) return alert('Task name cannot be empty.');
+
+      // Create new task object
+      const newTask = {
+        id: taskId++,
+        name,
+        priority,
+        isImportant,
+        isCompleted: false,
+        date: new Date().toLocaleString()
+      };
+
+      // Add new task to array
+      tasks.push(newTask);
+      console.log(JSON.stringify(tasks)); // Log updated task list
+      renderTasks(); // Update task list on the page
+      taskForm.reset(); // Clear form inputs
+    });
+
+    // Event listener: Handle delete and complete actions
+    taskManager.addEventListener('click', e => {
+      const id = parseInt(e.target.dataset.id); // Get task id from clicked element
+
+      // Handle delete button click
+      if (e.target.classList.contains('deleteBtn')) {
+        const index = tasks.findIndex(t => t.id === id);
+        if (index !== -1) tasks.splice(index, 1); // Remove task from array
+        console.log(JSON.stringify(tasks)); // Log updated task list
+        renderTasks(); // Update display
+      } 
+      // Handle complete checkbox click
+      else if (e.target.classList.contains('toggleComplete')) {
+        const task = tasks.find(t => t.id === id);
+        if (task) task.isCompleted = !task.isCompleted; // Toggle completed status
+        console.log(JSON.stringify(tasks)); // Log updated task list
+        renderTasks(); // Update display
+      }
+    });
+  </script>
+</body>
+</html>
